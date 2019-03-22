@@ -20,9 +20,9 @@ public class DriverController implements Serializable {
         this.userRepository = userRepository;
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/order")
-    public ResponseEntity<?> orderReadAllResponse() {
+    @RequestMapping(method = RequestMethod.GET, value = "/order/{id}")
+    public ResponseEntity<?> orderReadAllResponse(@PathVariable Integer id) {
         UserServiceImpl buyerService = new UserServiceImpl(userRepository);
-        return buyerService.readUserById(1);
+        return buyerService.readUserById(id);
     }
 }

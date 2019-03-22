@@ -2,13 +2,7 @@
 <persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
 
     <persistence-unit name="kpsdelivery">
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.CartEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.CategoriesEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.DriversInfoEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.FoodsEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.OrdersEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.ShopEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.UsersEntity</class>
+        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.UsersEntity</class>
         <properties>
             <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/delivery"/>
             <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
