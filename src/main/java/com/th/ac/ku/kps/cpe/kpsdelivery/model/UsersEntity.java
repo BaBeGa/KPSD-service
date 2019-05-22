@@ -15,17 +15,13 @@ public class UsersEntity {
     private Timestamp emailVerifiedAt;
     private String password;
     private UserType type;
+    private String image;
     private Byte isActiveAccount;
+    private String fcmToken;
     private String rememberToken;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
-    private int idUser;
-    private Double latitude;
-    private Double longtitude;
-    private String token;
-    private String userType;
-    private String username;
 
     @Id
     @Column(name = "id")
@@ -89,6 +85,16 @@ public class UsersEntity {
     }
 
     @Basic
+    @Column(name = "image")
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    @Basic
     @Column(name = "is_active_account")
     public Byte getIsActiveAccount() {
         return isActiveAccount;
@@ -96,6 +102,16 @@ public class UsersEntity {
 
     public void setIsActiveAccount(Byte isActiveAccount) {
         this.isActiveAccount = isActiveAccount;
+    }
+
+    @Basic
+    @Column(name = "fcm_token")
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     @Basic
@@ -138,92 +154,28 @@ public class UsersEntity {
         this.deletedAt = deletedAt;
     }
 
-    @Basic
-    @Column(name = "id_user")
-    public int getIdUser() {
-        return idUser;
-    }
-
-    public void setIdUser(int idUser) {
-        this.idUser = idUser;
-    }
-
-    @Basic
-    @Column(name = "latitude")
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    @Basic
-    @Column(name = "longtitude")
-    public Double getLongtitude() {
-        return longtitude;
-    }
-
-    public void setLongtitude(Double longtitude) {
-        this.longtitude = longtitude;
-    }
-
-    @Basic
-    @Column(name = "token")
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    @Basic
-    @Column(name = "user_type")
-    public String getUserType() {
-        return userType;
-    }
-
-    public void setUserType(String userType) {
-        this.userType = userType;
-    }
-
-    @Basic
-    @Column(name = "username")
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UsersEntity that = (UsersEntity) o;
         return id == that.id &&
-                idUser == that.idUser &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(email, that.email) &&
                 Objects.equals(emailVerifiedAt, that.emailVerifiedAt) &&
                 Objects.equals(password, that.password) &&
                 Objects.equals(type, that.type) &&
+                Objects.equals(image, that.image) &&
                 Objects.equals(isActiveAccount, that.isActiveAccount) &&
+                Objects.equals(fcmToken, that.fcmToken) &&
                 Objects.equals(rememberToken, that.rememberToken) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt) &&
-                Objects.equals(deletedAt, that.deletedAt) &&
-                Objects.equals(latitude, that.latitude) &&
-                Objects.equals(longtitude, that.longtitude) &&
-                Objects.equals(token, that.token) &&
-                Objects.equals(userType, that.userType) &&
-                Objects.equals(username, that.username);
+                Objects.equals(deletedAt, that.deletedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, email, emailVerifiedAt, password, type, isActiveAccount, rememberToken, createdAt, updatedAt, deletedAt, idUser, latitude, longtitude, token, userType, username);
+        return Objects.hash(id, name, email, emailVerifiedAt, password, type, image, isActiveAccount, fcmToken, rememberToken, createdAt, updatedAt, deletedAt);
     }
 }
