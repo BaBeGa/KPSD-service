@@ -2,9 +2,7 @@
 <persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
 
     <persistence-unit name="persistenceUnit">
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.OrdersEntity</class>
         <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.buyer.order.UserInfosEntity</class>
-        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.RestaurantsEntity</class>
         <class>UsersEntity.UsersEntity</class>
         <class>Users.UsersEntity</class>
         <class>worktimeEntity.WorkTimesEntity</class>
@@ -12,6 +10,10 @@
         <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.UserInfoEntity.UserInfosEntity</class>
         <class>UserInfoEntity.UserInfosEntity</class>
         <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.OrdersEntity.OrdersEntity</class>
+        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.OrdersDetailsEntity.OrderDetailsEntity</class>
+        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.MenusEntity.MenusEntity</class>
+        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.AccountEntity.AccountsEntity</class>
+        <class>com.th.ac.ku.kps.cpe.kpsdelivery.model.RestaurantEntity.RestaurantsEntity</class>
         <properties>
             <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/delivery"/>
             <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>

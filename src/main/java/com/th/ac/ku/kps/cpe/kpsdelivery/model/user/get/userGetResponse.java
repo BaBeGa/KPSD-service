@@ -8,6 +8,8 @@ public class userGetResponse {
     private Integer status;
     private String msg;
     private UserType userType;
+    private Integer credit;
+
     @JsonGetter
     public Integer getStatus() {
         return status;
@@ -31,5 +33,13 @@ public class userGetResponse {
     @JsonSetter
     public void setUserType(UserType userType) {
         this.userType = userType;
+    }
+    @JsonGetter
+    public Integer getCredit() {
+        return credit;
+    }
+    @JsonSetter
+    public void setCredit(Integer credit) {
+        this.credit = credit;
     }
 }

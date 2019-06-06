@@ -11,10 +11,12 @@ public class RestaurantsEntity {
     private String name;
     private String address;
     private String phonenumber;
-    private String status;
     private double latValue;
     private double lonValue;
     private byte isActive;
+    private String image;
+    private Double numRating;
+    private Double avgRating;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
@@ -60,16 +62,6 @@ public class RestaurantsEntity {
     }
 
     @Basic
-    @Column(name = "status")
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    @Basic
     @Column(name = "lat_value")
     public double getLatValue() {
         return latValue;
@@ -97,6 +89,36 @@ public class RestaurantsEntity {
 
     public void setIsActive(byte isActive) {
         this.isActive = isActive;
+    }
+
+    @Basic
+    @Column(name = "image")
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    @Basic
+    @Column(name = "num_rating")
+    public Double getNumRating() {
+        return numRating;
+    }
+
+    public void setNumRating(Double numRating) {
+        this.numRating = numRating;
+    }
+
+    @Basic
+    @Column(name = "avg_rating")
+    public Double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(Double avgRating) {
+        this.avgRating = avgRating;
     }
 
     @Basic
@@ -141,7 +163,9 @@ public class RestaurantsEntity {
                 Objects.equals(name, that.name) &&
                 Objects.equals(address, that.address) &&
                 Objects.equals(phonenumber, that.phonenumber) &&
-                Objects.equals(status, that.status) &&
+                Objects.equals(image, that.image) &&
+                Objects.equals(numRating, that.numRating) &&
+                Objects.equals(avgRating, that.avgRating) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt) &&
                 Objects.equals(deletedAt, that.deletedAt);
@@ -149,6 +173,6 @@ public class RestaurantsEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, address, phonenumber, status, latValue, lonValue, isActive, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, name, address, phonenumber, latValue, lonValue, isActive, image, numRating, avgRating, createdAt, updatedAt, deletedAt);
     }
 }

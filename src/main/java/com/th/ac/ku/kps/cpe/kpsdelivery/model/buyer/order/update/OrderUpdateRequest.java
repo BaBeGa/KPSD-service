@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 public class OrderUpdateRequest {
     private int id;
 //    private Integer customerId;
-    private Integer driverId;
+//    private Integer driverId;
 //    private Integer restaurantId;
 //    private Double customerLatValue;
 //    private Double customerLonValue;
@@ -26,21 +26,18 @@ public class OrderUpdateRequest {
 //    private double foodPrice;
 //    private Double lengthPrice;
 //    private Double totalPrice;
-    private Double totalLength;
+//    private Double totalLength;
 //    private Integer quantity;
 //    private Double discount;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
-    private Timestamp deletedAt;
 
     @JsonGetter
     public int getId() {
         return id;
     }
-    @JsonGetter
-    public Integer getDriverId() {
-        return driverId;
-    }
+//    @JsonGetter
+//    public Integer getDriverId() {
+//        return driverId;
+//    }
     @JsonGetter
     public Double getDriverLatValue() {
         return driverLatValue;
@@ -53,36 +50,11 @@ public class OrderUpdateRequest {
     public OrderStatus getStatus() {
         return status;
     }
+
 //    @JsonGetter
-//    public Time getRequiredTime() {
-//        return requiredTime;
+//    public Double getTotalLength() {
+//        return totalLength;
 //    }
-//    @JsonGetter
-//    public Time getWaitingTime() {
-//        return waitingTime;
-//    }
-//    @JsonGetter
-//    public Time getShippedTime() {
-//        return shippedTime;
-//    }
-//    @JsonGetter
-//    public Time getTotalTime() {
-//        return totalTime;
-//    }
-    @JsonGetter
-    public Double getTotalLength() {
-        return totalLength;
-    }
-    @JsonGetter
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-    @JsonGetter
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-    @JsonGetter
-    public Timestamp getDeletedAt() {
-        return deletedAt;
-    }
+
+
 }

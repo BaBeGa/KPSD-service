@@ -18,6 +18,8 @@ public class UsersEntity {
     private String image;
     private Byte isActiveAccount;
     private String fcmToken;
+    private Double numRating;
+    private Double avgRating;
     private String rememberToken;
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -115,6 +117,26 @@ public class UsersEntity {
     }
 
     @Basic
+    @Column(name = "num_rating")
+    public Double getNumRating() {
+        return numRating;
+    }
+
+    public void setNumRating(Double numRating) {
+        this.numRating = numRating;
+    }
+
+    @Basic
+    @Column(name = "avg_rating")
+    public Double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(Double avgRating) {
+        this.avgRating = avgRating;
+    }
+
+    @Basic
     @Column(name = "remember_token")
     public String getRememberToken() {
         return rememberToken;
@@ -168,6 +190,8 @@ public class UsersEntity {
                 Objects.equals(image, that.image) &&
                 Objects.equals(isActiveAccount, that.isActiveAccount) &&
                 Objects.equals(fcmToken, that.fcmToken) &&
+                Objects.equals(numRating, that.numRating) &&
+                Objects.equals(avgRating, that.avgRating) &&
                 Objects.equals(rememberToken, that.rememberToken) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt) &&
@@ -176,6 +200,6 @@ public class UsersEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, email, emailVerifiedAt, password, type, image, isActiveAccount, fcmToken, rememberToken, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, name, email, emailVerifiedAt, password, type, image, isActiveAccount, fcmToken, numRating, avgRating, rememberToken, createdAt, updatedAt, deletedAt);
     }
 }

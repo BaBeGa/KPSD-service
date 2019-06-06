@@ -27,12 +27,15 @@ public class OrdersEntity {
     private Time waitingTime;
     private Time shippedTime;
     private Time totalTime;
+    private Double totalLength;
     private double foodPrice;
     private Double lengthPrice;
+    private Double percentPrice;
     private Double totalPrice;
-    private Double totalLength;
     private Integer quantity;
     private Double discount;
+    private Double driverRating;
+    private Double restaurantRating;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
@@ -199,6 +202,16 @@ public class OrdersEntity {
     }
 
     @Basic
+    @Column(name = "total_length")
+    public Double getTotalLength() {
+        return totalLength;
+    }
+
+    public void setTotalLength(Double totalLength) {
+        this.totalLength = totalLength;
+    }
+
+    @Basic
     @Column(name = "food_price")
     public double getFoodPrice() {
         return foodPrice;
@@ -219,6 +232,16 @@ public class OrdersEntity {
     }
 
     @Basic
+    @Column(name = "percent_price")
+    public Double getPercentPrice() {
+        return percentPrice;
+    }
+
+    public void setPercentPrice(Double percentPrice) {
+        this.percentPrice = percentPrice;
+    }
+
+    @Basic
     @Column(name = "total_price")
     public Double getTotalPrice() {
         return totalPrice;
@@ -226,16 +249,6 @@ public class OrdersEntity {
 
     public void setTotalPrice(Double totalPrice) {
         this.totalPrice = totalPrice;
-    }
-
-    @Basic
-    @Column(name = "total_length")
-    public Double getTotalLength() {
-        return totalLength;
-    }
-
-    public void setTotalLength(Double totalLength) {
-        this.totalLength = totalLength;
     }
 
     @Basic
@@ -256,6 +269,26 @@ public class OrdersEntity {
 
     public void setDiscount(Double discount) {
         this.discount = discount;
+    }
+
+    @Basic
+    @Column(name = "driver_rating")
+    public Double getDriverRating() {
+        return driverRating;
+    }
+
+    public void setDriverRating(Double driverRating) {
+        this.driverRating = driverRating;
+    }
+
+    @Basic
+    @Column(name = "restaurant_rating")
+    public Double getRestaurantRating() {
+        return restaurantRating;
+    }
+
+    public void setRestaurantRating(Double restaurantRating) {
+        this.restaurantRating = restaurantRating;
     }
 
     @Basic
@@ -310,11 +343,14 @@ public class OrdersEntity {
                 Objects.equals(waitingTime, that.waitingTime) &&
                 Objects.equals(shippedTime, that.shippedTime) &&
                 Objects.equals(totalTime, that.totalTime) &&
-                Objects.equals(lengthPrice, that.lengthPrice) &&
-                Objects.equals(totalPrice, that.totalPrice) &&
                 Objects.equals(totalLength, that.totalLength) &&
+                Objects.equals(lengthPrice, that.lengthPrice) &&
+                Objects.equals(percentPrice, that.percentPrice) &&
+                Objects.equals(totalPrice, that.totalPrice) &&
                 Objects.equals(quantity, that.quantity) &&
                 Objects.equals(discount, that.discount) &&
+                Objects.equals(driverRating, that.driverRating) &&
+                Objects.equals(restaurantRating, that.restaurantRating) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt) &&
                 Objects.equals(deletedAt, that.deletedAt);
@@ -322,6 +358,6 @@ public class OrdersEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, customerId, driverId, restaurantId, customerLatValue, customerLonValue, driverLatValue, driverLonValue, restaurantLatValue, restaurantLonValue, status, orderDate, requiredTime, waitingTime, shippedTime, totalTime, foodPrice, lengthPrice, totalPrice, totalLength, quantity, discount, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, customerId, driverId, restaurantId, customerLatValue, customerLonValue, driverLatValue, driverLonValue, restaurantLatValue, restaurantLonValue, status, orderDate, requiredTime, waitingTime, shippedTime, totalTime, totalLength, foodPrice, lengthPrice, percentPrice, totalPrice, quantity, discount, driverRating, restaurantRating, createdAt, updatedAt, deletedAt);
     }
 }
