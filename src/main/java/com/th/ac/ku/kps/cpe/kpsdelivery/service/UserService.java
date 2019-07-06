@@ -16,4 +16,5 @@ public interface UserService {
     ResponseEntity<?> orderGet (String token, int id);
     ResponseEntity<?> driverFind (String token, int orderId, int limit);
     ResponseEntity<?> acceptionDriver(String token, AcceptionRequest restRequest);
+    ResponseEntity<?> driverHistory (String token, int id);
 }

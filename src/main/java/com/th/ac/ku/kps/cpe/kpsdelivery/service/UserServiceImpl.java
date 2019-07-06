@@ -1,5 +1,6 @@
 package com.th.ac.ku.kps.cpe.kpsdelivery.service;
 
+import com.th.ac.ku.kps.cpe.kpsdelivery.allenum.OrderStatus;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.*;
 import com.th.ac.ku.kps.cpe.kpsdelivery.allenum.UserType;
 //import com.th.ac.ku.kps.cpe.kpsdelivery.model.buyer.order.create.OrderCreateResponse;
@@ -8,6 +9,7 @@ import com.th.ac.ku.kps.cpe.kpsdelivery.model.finder.Acception.AcceptionRequest;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.finder.Acception.AcceptionResponse;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.finder.DriverFindResponse;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.user.get.userGetResponse;
+import com.th.ac.ku.kps.cpe.kpsdelivery.model.buyer.order.get.driverorderGetResponse;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.buyer.order.get.orderGetResponse;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.user.update.userUpdateResponse;
 import com.th.ac.ku.kps.cpe.kpsdelivery.model.user.update.userUpdateRequest;
@@ -16,21 +18,32 @@ import com.th.ac.ku.kps.cpe.kpsdelivery.unity.Common;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestTemplate;
 
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
+@EnableAsync
 public class UserServiceImpl implements UserService {
+    private static final String FIREBASE_SERVER_KEY = "AAAAsK3sCOk:APA91bEiZieHEJVIzO9mXIes3iMZGQKRGFkbCMTiTtKX5lFBtMg7rVuNWoVA04biinL3b1jlGlUwHsLlaqBvgsHM7BGZVAoo9PKbp1f_UEvWfUjjNzM7KmGiUp4FOOWbi68zC33ewwJv";
+    private static final String FIREBASE_API_URL = "https://fcm.googleapis.com/fcm/send";
     private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
-    private static PushNotificationsService pushNotificationsService;
+    //private static PushNotificationsService pushNotificationsService;
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final UserInfoRepository userInfoRepository;
@@ -39,7 +52,7 @@ public class UserServiceImpl implements UserService {
     private final OrderDetailsRepository orderDetailsRepository;
     private final RestaurantRepository restaurantRepository;
     public UserServiceImpl(PushNotificationsService pushNotificationsService, UserRepository userRepository, AccountRepository accountRepository, UserInfoRepository userInfoRepository, OrderRepository orderRepository, OrderDetailsRepository orderDetailsRepository, MenusRepository menusRepository, RestaurantRepository restaurantRepository) {
-        this.pushNotificationsService = pushNotificationsService;
+        //this.pushNotificationsService = pushNotificationsService;
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
         this.userInfoRepository = userInfoRepository;
@@ -59,6 +72,7 @@ public class UserServiceImpl implements UserService {
             if(accountsEntity != null){
                 response.setCredit(accountsEntity.getCredit());
             }
+            response.setWorkStatus(userEntity.getWorkStatus());
             response.setUserType(userEntity.getType());
             response.setStatus(201);
             response.setMsg("Found user!");
@@ -70,44 +84,108 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+
+    @Override
+    public ResponseEntity<?> driverHistory(String token, int id) {
+        List<DriverhistoryEntity> driverhistoryList = new ArrayList<>();
+        driverorderGetResponse response = new driverorderGetResponse();
+        List<OrdersEntity> ordersEntity = orderRepository.findByDriverId(id);
+        if(ordersEntity == null){
+            response.setStatus(404);
+            response.setMsg("order not found!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        for(OrdersEntity order:ordersEntity){
+            List<DriverOrderEntity> menuList = new ArrayList<>();
+            List<OrderDetailsEntity> orderDetailsEntity = orderDetailsRepository.findByOrderId(order.getId());
+            for(OrderDetailsEntity orderdetail:orderDetailsEntity){
+                MenusEntity menusEntity = menusRepository.findById(orderdetail.getMenuId());
+                DriverOrderEntity driverOrderEntity = new DriverOrderEntity();
+                driverOrderEntity.setName(menusEntity.getName());
+                driverOrderEntity.setPrice(menusEntity.getPrice());
+                driverOrderEntity.setQuantity(orderdetail.getQuantity());
+                menuList.add(driverOrderEntity);
+            }
+            DriverhistoryEntity driverhistoryEntity = new DriverhistoryEntity();
+            driverhistoryEntity.setCustomerId(order.getCustomerId());
+            driverhistoryEntity.setCustomerLatValue(order.getCustomerLatValue());
+            driverhistoryEntity.setCustomerLonValue(order.getCustomerLonValue());
+            driverhistoryEntity.setDiscount(order.getDiscount());
+            driverhistoryEntity.setDriverId(order.getDriverId());
+            driverhistoryEntity.setDriverLatValue(order.getDriverLatValue());
+            driverhistoryEntity.setDriverLonValue(order.getDriverLonValue());
+            driverhistoryEntity.setFoodPrice(order.getFoodPrice());
+            driverhistoryEntity.setLengthPrice(order.getLengthPrice());
+            driverhistoryEntity.setMenus(menuList);
+            driverhistoryEntity.setOrderDate(order.getOrderDate());
+            driverhistoryEntity.setOrderRating(order.getRestaurantRating());
+            driverhistoryEntity.setOrderStatus(order.getStatus());
+            driverhistoryEntity.setPercentPrice(order.getPercentPrice());
+            driverhistoryEntity.setQuantity(order.getQuantity());
+            driverhistoryEntity.setRequiredTime(order.getRequiredTime());
+            driverhistoryEntity.setRestaurantId(order.getRestaurantId());
+            driverhistoryEntity.setRestaurantLatValue(order.getRestaurantLatValue());
+            driverhistoryEntity.setRestaurantLonValue(order.getRestaurantLonValue());
+            driverhistoryEntity.setShippedTime(order.getShippedTime());
+            driverhistoryEntity.setTotalLength(order.getTotalLength());
+            driverhistoryEntity.setTotalPrice(order.getTotalPrice());
+            driverhistoryEntity.setTotalTime(order.getTotalTime());
+            driverhistoryEntity.setUpdatedAt(order.getUpdatedAt());
+            driverhistoryEntity.setWaitingTime(order.getWaitingTime());
+
+
+            driverhistoryList.add(driverhistoryEntity);
+
+        }
+        response.setDriverHistory(driverhistoryList);
+        response.setMsg("found driver histories");
+        response.setStatus(200);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
     @Override
     public ResponseEntity<?> orderGet(String token, int id) {
-        ArrayList<MenusEntity> menuList = new ArrayList();
+        List<DriverOrderEntity> menuList = new ArrayList<>();
         orderGetResponse response = new orderGetResponse();
         OrdersEntity ordersEntity = orderRepository.findById(id);
         if(ordersEntity == null){
             response.setStatus(404);
-            response.setMsg("orderID not found!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            response.setMsg("order not found!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        else if(ordersEntity != null){
-            List<OrderDetailsEntity> orderDetailsEntity = orderDetailsRepository.findByOrderId(id);
-            if(orderDetailsEntity == null){
+        List<OrderDetailsEntity> orderDetailsEntity = orderDetailsRepository.findByOrderId(id);
+        if(orderDetailsEntity == null){
+            response.setStatus(404);
+            response.setMsg("menuID not found!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+        for(OrderDetailsEntity orderdetail:orderDetailsEntity){
+            MenusEntity menusEntity = menusRepository.findById(orderdetail.getMenuId());
+            if(menusEntity == null){
                 response.setStatus(404);
-                response.setMsg("menuID not found!");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }else if(orderDetailsEntity != null){
-                for(OrderDetailsEntity orderdetail:orderDetailsEntity){
-                    MenusEntity menusEntity = menusRepository.findById(orderdetail.getMenuId());
-                    if(menusEntity == null){
-                        response.setStatus(404);
-                        response.setMsg("menu not found!");
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                    }else if(menusEntity != null){
-                        menuList.add(menusEntity);
-                    }
-                }
+                response.setMsg("menu not found!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
+            DriverOrderEntity driverOrderEntity = new DriverOrderEntity();
+            driverOrderEntity.setName(menusEntity.getName());
+            driverOrderEntity.setPrice(menusEntity.getPrice());
+            driverOrderEntity.setQuantity(orderdetail.getQuantity());
+            menuList.add(driverOrderEntity);
+
         }
+
+
 
         response.setCustomerId(ordersEntity.getCustomerId());
         response.setCustomerLatValue(ordersEntity.getCustomerLatValue());
-        response.setCustomerLonValue(ordersEntity.getRestaurantLonValue());
+        response.setCustomerLonValue(ordersEntity.getCustomerLonValue());
         response.setDiscount(ordersEntity.getDiscount());
         response.setDriverId(ordersEntity.getDriverId());
         response.setDriverLatValue(ordersEntity.getDriverLatValue());
         response.setDriverLonValue(ordersEntity.getDriverLonValue());
         response.setFoodPrice(ordersEntity.getFoodPrice());
+        response.setStartPrice(ordersEntity.getStartPrice());
         response.setLengthPrice(ordersEntity.getLengthPrice());
         response.setMenus(menuList);
         response.setMsg("found order!!");
@@ -134,21 +212,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> updateUser(String token, userUpdateRequest restRequest) {
         UsersEntity userEntity = userRepository.findById(restRequest.getId());
+        UserInfosEntity userInfosEntity = userInfoRepository.findByUserId(restRequest.getId());
         userUpdateResponse response = new userUpdateResponse();
         try{
             //update user fcm
             if(restRequest.getFcmToken() != null){
                 userEntity.setFcmToken(restRequest.getFcmToken());
                 response.setMsg("Found user! Added FCM token");
+                userRepository.save(userEntity);
             }
             //update driver isActive
-            if(restRequest.getIsActiveAccount() != null){
-                userEntity.setIsActiveAccount(restRequest.getIsActiveAccount());
-                response.setMsg("Found user! IsActiveAccount updated");
+            if(restRequest.getWorkStatus() != null){
+                userEntity.setWorkStatus(restRequest.getWorkStatus());
+                response.setMsg("Found user! workStatus updated");
+                userRepository.save(userEntity);
             }
+
             // update user location
             if(restRequest.getLatValue() != null && restRequest.getLonValue() != null){
-                UserInfosEntity userInfosEntity = userInfoRepository.findByUserId(restRequest.getId());
                 if(userInfosEntity == null){
                     response.setStatus(404);
                     response.setMsg(" Not Found userinfo!");
@@ -159,8 +240,54 @@ public class UserServiceImpl implements UserService {
                 userInfoRepository.save(userInfosEntity);
                 response.setMsg("Found user! user Location updated");
             }
-            Common.LoggerInfo(userEntity);
-            userRepository.save(userEntity);
+            if(restRequest.getAddress() != null){
+                userInfosEntity.setAddress(restRequest.getAddress());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getProvince() != null){
+                userInfosEntity.setProvince(restRequest.getProvince());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getDistrict() != null){
+                userInfosEntity.setDistrict(restRequest.getDistrict());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getSubdistrict() != null){
+                userInfosEntity.setSubdistrict(restRequest.getSubdistrict());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getAddress2() != null){
+                userInfosEntity.setAddress2(restRequest.getAddress2());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getZipcode() != null){
+                userInfosEntity.setZipcode(restRequest.getZipcode());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getFirstname() != null){
+                userInfosEntity.setFirstname(restRequest.getFirstname());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getLastname() != null){
+                userInfosEntity.setLastname(restRequest.getLastname());
+                userInfoRepository.save(userInfosEntity);
+            }
+            if(restRequest.getName() != null){
+                userEntity.setName(restRequest.getName());
+                userRepository.save(userEntity);
+            }
+            if(restRequest.getType() != null){
+                userEntity.setType(restRequest.getType());
+                userRepository.save(userEntity);
+            }
+            if(restRequest.getEmail() != null){
+                userEntity.setEmail(restRequest.getEmail());
+                userRepository.save(userEntity);
+            }
+
+            //
+            //Common.LoggerInfo(userEntity);
+
             response.setStatus(201);
         }catch(Exception e){
             response.setStatus(400);
@@ -202,6 +329,8 @@ public class UserServiceImpl implements UserService {
 //        Common.LoggerInfo(timeNow);
     }
 
+
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
     @Enumerated(EnumType.STRING)
     @Override
     public ResponseEntity<?> driverFind(String token,int orderId, int limit) {
@@ -216,7 +345,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
         Optional<RestaurantsEntity> restaurantsEntity = restaurantRepository.findById(ordersEntity.getRestaurantId());
-        if(restaurantsEntity == null){
+        if(!restaurantsEntity.isPresent()){
             response.setStatus(404);
             response.setMsg("restaurantID not found!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -232,7 +361,10 @@ public class UserServiceImpl implements UserService {
         //find driver in user table.
         final double[] driLat = new double[1];
         final double[] driLng = new double[1];
-        ArrayList<String> driverList = new ArrayList();
+        ArrayList<String> driverList = new ArrayList<>();
+        ArrayList<String> dlist1 = new ArrayList<>();
+        ArrayList<String> dlist2 = new ArrayList<>();
+        ArrayList<String> dlist3 = new ArrayList<>();
         double distance;
         List<UsersEntity> driversEntity = userRepository.findByType(UserType.driver);
         //find driver who is now active.
@@ -243,22 +375,26 @@ public class UserServiceImpl implements UserService {
         }
         //get driver lat,lng in user_info.
         for (UsersEntity driver:driversEntity) {
-            if(driver.getIsActiveAccount()== 1 && driver.getFcmToken() != null){
+            if(driver.getWorkStatus()== 1 && driver.getFcmToken() != null){
                 UserInfosEntity driverInfo = userInfoRepository.findByUserId(driver.getId());
-                if(driverInfo==null){
-                    response.setStatus(404);
-                    response.setMsg("can't find userInfo. Please check UserInfo in database");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                }
-                if(driverInfo.getLatValue() != null && driverInfo.getLonValue() != null){
-                    driLat[0]=driverInfo.getLatValue();
-                    driLng[0]=driverInfo.getLonValue();
-                    Common.LoggerInfo(driLat[0]);
-                    Common.LoggerInfo(driLng[0]);
-                    distance = distance(restLat[0], driLat[0], restLon[0], driLng[0],0,0);
-                    if(distance<=limit){
-                        Common.LoggerInfo(distance);
-                        driverList.add(driver.getFcmToken());
+                if(driverInfo != null){
+                    if(driverInfo.getLatValue() != null && driverInfo.getLonValue() != null){
+                        driLat[0]=driverInfo.getLatValue();
+                        driLng[0]=driverInfo.getLonValue();
+                        //Common.LoggerInfo(driLat[0]);
+                        //Common.LoggerInfo(driLng[0]);
+                        distance = distance(restLat[0], driLat[0], restLon[0], driLng[0],0,0);
+                        if(distance<=limit && ordersEntity.getCustomerId()!= driver.getId()){
+                            //Common.LoggerInfo(distance);
+                            if(distance<=limit/3){
+                                dlist1.add(driver.getFcmToken());
+                            }else if(distance > limit/3 && distance <= 2*(limit/3)){
+                                dlist2.add(driver.getFcmToken());
+                            }else {
+                                dlist3.add(driver.getFcmToken());
+                            }
+                            driverList.add(driver.getFcmToken());
+                        }
                     }
                 }
 
@@ -274,7 +410,7 @@ public class UserServiceImpl implements UserService {
             } catch (JSONException e) {
                 response.setStatus(404);
                 response.setMsg("can't send notification to customer."+e);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
         }else{
             //get customer contact via phone number or email
@@ -282,78 +418,102 @@ public class UserServiceImpl implements UserService {
             if(cusInfo==null){
                 response.setStatus(404);
                 response.setMsg("can't find customer Info.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }else{
-                try {
-                    return DFCMNotification(orderId,driverList,cusInfo,resInfo[0]);
-                } catch (JSONException e) {
-                    response.setStatus(404);
-                    response.setMsg("can't send notification to driver."+e);
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                }
+
+                    ArrayList<String> firebaseRes = new ArrayList<>();
+                    for(int i=0;i<3;i++){
+                        if(i == 0 && !dlist1.isEmpty()){
+                            executor.submit(() -> {
+                                try {
+                                    DFCMNotification(orderId,dlist1,cusInfo,resInfo[0],0);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }else if(i == 1 && !dlist2.isEmpty()){
+                            executor.submit(() -> {
+                                try {
+                                    if(dlist1.isEmpty()){
+                                        DFCMNotification(orderId,dlist2,cusInfo,resInfo[0],0);
+                                    }else{
+                                        DFCMNotification(orderId,dlist2,cusInfo,resInfo[0],30);
+                                    }
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }else if(i == 2 && !dlist3.isEmpty()){
+                            executor.submit(() -> {
+                                try {
+                                    if(dlist1.isEmpty()&&dlist2.isEmpty()){
+                                        DFCMNotification(orderId,dlist3,cusInfo,resInfo[0],0);
+                                    }else if(!dlist1.isEmpty()&&dlist2.isEmpty()){
+                                        DFCMNotification(orderId,dlist3,cusInfo,resInfo[0],30);
+                                    }else if(dlist1.isEmpty()&&!dlist2.isEmpty()) {
+                                        DFCMNotification(orderId, dlist3, cusInfo, resInfo[0], 30);
+                                    }else{
+                                        DFCMNotification(orderId,dlist3,cusInfo,resInfo[0],60);
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        }
+
+                    }
+                    response.setList(driverList);
+                    response.setListfirebaseResponse(firebaseRes);
+                    response.setMsg("send message to drivers successfully");
+                    response.setStatus(200);
+                    return ResponseEntity.status(HttpStatus.OK).body(response);
             }
         }
 
     }
+
     //fcm to driver
-    private ResponseEntity<?> DFCMNotification(Integer orderId,ArrayList notify_List,UserInfosEntity cusInfo,RestaurantsEntity resInfo) throws JSONException {
+    public void DFCMNotification(Integer orderId, ArrayList notify_List, UserInfosEntity cusInfo, RestaurantsEntity resInfo, Integer c) throws JSONException {
+        try {
+            TimeUnit.SECONDS.sleep(c);
+        }catch (InterruptedException e) {
+            System.err.format("IOException: %s%n", e);
+        }
         ArrayList List = notify_List;
         JSONObject body = new JSONObject();
-        DriverFindResponse response = new DriverFindResponse();
         body.put("registration_ids",new JSONArray(List));
         //body.put("to","/topic/all");
         body.put("priority", "high");
 
         JSONObject notification = new JSONObject();
-        notification.put("title", "New order available.");
-        notification.put("body", "You have a new order");
+        notification.put("title", "คำสั่งชื้อใหม่");
+        notification.put("body", "คุณได้รับคำสั่งชื้อใหม่ ต้องการที่จะรับงานนี้หรือไม่?");
 
         JSONObject data = new JSONObject();
+        data.put("title","การตอบรับ");
         data.put("orderid", orderId);
-        data.put("cuslat", cusInfo.getLatValue());
-        data.put("cuslon", cusInfo.getLonValue());
-        data.put("cusphone", cusInfo.getPhonenumber());
-        data.put("reslat", resInfo.getLatValue());
-        data.put("reslon", resInfo.getLonValue());
-        data.put("resphone", resInfo.getPhonenumber());
+        data.put("cusName", cusInfo.getFirstname());
+        data.put("cusPhone", cusInfo.getPhonenumber());
+        data.put("cusLat", cusInfo.getLonValue());
+        data.put("cusLon", cusInfo.getLonValue());
+        data.put("resName", resInfo.getName());
+        data.put("resPhone", resInfo.getPhonenumber());
+        data.put("resLat", resInfo.getLatValue());
+        data.put("resLon", resInfo.getLonValue());
         data.put("messageType", "acception");
 
         body.put("notification", notification);
         body.put("data", data);
-        /*
-         {
-         "notification": {
-         "title": "JSA Notification",
-         "body": "Happy Message!"
-         },
-         "data": {
-         "Key-1": "JSA Data 1",
-         "Key-2": "JSA Data 2"
-         },
-         "priority": "high"
-         }
-         */
-        HttpEntity<String> request = new HttpEntity<>(body.toString());
-        Common.LoggerInfo(body.toString());
-        CompletableFuture<String> pushNotification = pushNotificationsService.send(request);
-        CompletableFuture.allOf(pushNotification).join();
 
-        try {
-            response.setStatus(200);
-            String firebaseResponse = pushNotification.get();
-            response.setMsg("Send massage to driver successful");
-            response.setFirebaseResponse(firebaseResponse);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (InterruptedException e) {
-            response.setStatus(500);
-            response.setMsg("Cant send message to driver.."+e);
-            return ResponseEntity.status(404).body(response);
-        } catch (ExecutionException e) {
-            response.setStatus(500);
-            response.setMsg("Cant send message to driver.."+e);
-            return ResponseEntity.status(404).body(response);
-        }
-
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "key=" + FIREBASE_SERVER_KEY);
+        httpHeaders.set("Content-Type", "application/json");
+        HttpEntity<String> httpEntity = new HttpEntity<String>(body.toString(),httpHeaders);
+        String result = restTemplate.postForObject(FIREBASE_API_URL,httpEntity,String.class);
+        Common.LoggerInfo(result);
+        //return result;
     }
 
     //fcm to customer
@@ -367,63 +527,54 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
         String userList = user.getFcmToken();
-        String limit = String.valueOf(disLimit);
+        String limit = String.valueOf(disLimit/1000);
         JSONObject notification = new JSONObject();
         body.put("to",userList);
         //body.put("to","/topic/all");
         body.put("priority", "high");
-        notification.put("title", "No driver available near the restaurant, "+limit+" km.");
-        notification.put("body", "Do you want to increase your distance limit?");
+        notification.put("body", "ไม่พบผู้ส่งที่ให้บริการในระยะ  "+limit+" km.");
+        notification.put("title", "คุณต้องการจะเพิ่มระยะทางการคนหาหรือไม่");
+        data.put("title","สั่งชื้ออีกครั้ง");
         data.put("messageType", "limit");
+        data.put("limit",limit);
         data.put("orderid", orderId);
         body.put("notification",notification);
         body.put("data", data);
 
-        HttpEntity<String> request = new HttpEntity<>(body.toString());
-        CompletableFuture<String> pushNotification = pushNotificationsService.send(request);
-        CompletableFuture.allOf(pushNotification).join();
 
-        try {
-            response.setStatus(200);
-            String firebaseResponse = pushNotification.get();
-            response.setMsg("Driver not found in "+limit+" km.");
-            response.setFirebaseResponse(firebaseResponse);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (InterruptedException e) {
-            response.setStatus(500);
-            response.setMsg("Cant send message to customer"+e);
-            return ResponseEntity.status(500).body(response);
-        } catch (ExecutionException e) {
-            response.setStatus(400);
-            response.setMsg("Cant send message to customer"+e);
-            return ResponseEntity.status(400).body(response);
-        }
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "key=" + FIREBASE_SERVER_KEY);
+        httpHeaders.set("Content-Type", "application/json");
+        HttpEntity<String> httpEntity = new HttpEntity<String>(body.toString(),httpHeaders);
+        String result = restTemplate.postForObject(FIREBASE_API_URL,httpEntity,String.class);
+
+
+//        HttpEntity<String> request = new HttpEntity<>(body.toString());
+//        CompletableFuture<String> pushNotification = pushNotificationsService.send(request);
+//        CompletableFuture.allOf(pushNotification).join();
+        response.setStatus(200);
+        response.setMsg("Driver not found in "+limit+" km.");
+        response.setFirebaseResponse(result);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+//        try {
+//            response.setStatus(200);
+//            String firebaseResponse = pushNotification.get();
+//            response.setMsg("Driver not found in "+limit+" km.");
+//            response.setFirebaseResponse(firebaseResponse);
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//        } catch (InterruptedException e) {
+//            response.setStatus(500);
+//            response.setMsg("Cant send message to customer"+e);
+//            return ResponseEntity.status(500).body(response);
+//        } catch (ExecutionException e) {
+//            response.setStatus(400);
+//            response.setMsg("Cant send message to customer"+e);
+//            return ResponseEntity.status(400).body(response);
+//        }
     }
 
-    //    @Override
-//    public ResponseEntity<?> orderCreate(String token, OrderCreateBodyRequest restRequest) {
-//
-//        OrderCreateResponse response = new OrderCreateResponse();
-//        //List<OrdersEntity> orderEntity = orderRepository.
-//        //restRequest.getId();//got id order
-//        OrdersEntity ordersEntity = new OrdersEntity();
-//        //in case insert data. Order's ID not require.
-//        //in case update data. Order's ID require.
-//        ordersEntity.setCustomerId(restRequest.getCustomerId());//this line set the cus ID to the ordersEntity
-//        ordersEntity.setRestaurantId(restRequest.getRestaurantID());
-//        ordersEntity.setStatus(restRequest.getStatus());
-//        long millis=System.currentTimeMillis();
-//        Date date = new Date(millis);
-//        ordersEntity.setOrderDate(date);
-//        orderRepository.save(ordersEntity);
-//
-//        //Common.LoggerInfo(ordersEntity);
-//        response.setStatus(200);
-//        response.setMsg("Successful");
-//        response.setId_order(ordersEntity.getId());
-//        return ResponseEntity.ok(response);
-//
-//    }
 
     @Override
     public ResponseEntity<?> acceptionDriver(String token, AcceptionRequest restRequest){
@@ -432,66 +583,83 @@ public class UserServiceImpl implements UserService {
         if(orderEntity == null){
             response.setStatus(404);
             response.setMsg("orderID not found for acception!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         if(orderEntity.getDriverId()!=null){
             response.setStatus(403);
             response.setMsg("This order is already accept by another driver!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
-        if(orderEntity.getStatus().equals("cancel")){
+        if(orderEntity.getStatus().equals(OrderStatus.valueOf("cancel"))){
             response.setStatus(403);
             response.setMsg("This order has been canceled");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
         orderEntity.setDriverId(restRequest.getUserId());
         orderRepository.save(orderEntity);
-        UsersEntity usersEntity = userRepository.findById(restRequest.getUserId());
+        int cusId = orderEntity.getCustomerId();
+        UsersEntity usersEntity = userRepository.findById(cusId);
+        UserInfosEntity userInfosEntity = userInfoRepository.findByUserId(restRequest.getUserId());
         try{
-            return  CFCMNotificationAcception(restRequest.getOrderId(),usersEntity);
+            return  CFCMNotificationAcception(restRequest.getOrderId(),usersEntity,userInfosEntity);
         }catch (Exception e){
             response.setStatus(404);
             response.setMsg("can't send driver acception notification to customer."+e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
-    private ResponseEntity<?> CFCMNotificationAcception(Integer orderId, UsersEntity user) throws JSONException {
+    private ResponseEntity<?> CFCMNotificationAcception(Integer orderId, UsersEntity user, UserInfosEntity userInfo) throws JSONException {
         JSONObject body = new JSONObject();
         JSONObject data = new JSONObject();
         JSONObject notification = new JSONObject();
         String userList = user.getFcmToken();
-        DriverFindResponse response = new DriverFindResponse();
+        AcceptionResponse response = new AcceptionResponse();
         body.put("to",userList);
         //body.put("to","/topic/all");
         body.put("priority", "high");
-        notification.put("title", "ค้นหาคนขับสำเร็จ");
-        notification.put("body", "คนขับกำลังทำการส่งอาหารให้คุณ");
+        notification.put("title", "ค้นหาผู้ส่งสำเร็จ");
+        notification.put("body", "คนขับกำลังดำเนินการส่งอาหาร");
 
         data.put("messageType", "accepted");
+        data.put("title","รายละเอียดผู้ส่ง");
         data.put("orderid", orderId);
+        data.put("driverName",userInfo.getFirstname());
+        data.put("driverPhone",userInfo.getPhonenumber());
+        data.put("image",user.getImage());
         body.put("notification",notification);
         body.put("data", data);
 
-        HttpEntity<String> request = new HttpEntity<>(body.toString());
-        CompletableFuture<String> pushNotification = pushNotificationsService.send(request);
-        CompletableFuture.allOf(pushNotification).join();
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "key=" + FIREBASE_SERVER_KEY);
+        httpHeaders.set("Content-Type", "application/json");
+        HttpEntity<String> httpEntity = new HttpEntity<String>(body.toString(),httpHeaders);
+        String result = restTemplate.postForObject(FIREBASE_API_URL,httpEntity,String.class);
 
-        try {
-            response.setStatus(200);
-            String firebaseResponse = pushNotification.get();
-            response.setMsg("success.");
-            response.setFirebaseResponse(firebaseResponse);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (InterruptedException e) {
-            response.setStatus(500);
-            response.setMsg("Cant send message to customer"+e);
-            return ResponseEntity.status(500).body(response);
-        } catch (ExecutionException e) {
-            response.setStatus(400);
-            response.setMsg("Cant send message to customer"+e);
-            return ResponseEntity.status(400).body(response);
-        }
+//        HttpEntity<String> request = new HttpEntity<>(body.toString());
+//        CompletableFuture<String> pushNotification = pushNotificationsService.send(request);
+//        CompletableFuture.allOf(pushNotification).join();
+        response.setStatus(200);
+        response.setMsg("send notification to customer success.");
+        response.setFirebaseResponse(result);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+//        try {
+//            response.setStatus(200);
+//            String firebaseResponse = pushNotification.get();
+//            response.setMsg("success.");
+//            response.setFirebaseResponse(firebaseResponse);
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//        } catch (InterruptedException e) {
+//            response.setStatus(500);
+//            response.setMsg("Cant send message to customer"+e);
+//            return ResponseEntity.status(500).body(response);
+//        } catch (ExecutionException e) {
+//            response.setStatus(400);
+//            response.setMsg("Cant send message to customer"+e);
+//            return ResponseEntity.status(400).body(response);
+//        }
     }
 
 
@@ -523,5 +691,6 @@ public class UserServiceImpl implements UserService {
 
         return Math.sqrt(distance);
     }
+
 
 }

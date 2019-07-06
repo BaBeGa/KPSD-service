@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    connectionInitSql: "SET NAMES 'utf8mb4'"

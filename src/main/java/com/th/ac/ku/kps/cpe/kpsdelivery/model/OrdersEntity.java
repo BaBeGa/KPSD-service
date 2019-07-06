@@ -39,6 +39,7 @@ public class OrdersEntity {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
+    private Double startPrice;
 
     @Id
     @Column(name = "id")
@@ -321,6 +322,16 @@ public class OrdersEntity {
         this.deletedAt = deletedAt;
     }
 
+    @Basic
+    @Column(name = "start_price")
+    public Double getStartPrice() {
+        return startPrice;
+    }
+
+    public void setStartPrice(Double startPrice) {
+        this.startPrice = startPrice;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -353,11 +364,12 @@ public class OrdersEntity {
                 Objects.equals(restaurantRating, that.restaurantRating) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(updatedAt, that.updatedAt) &&
-                Objects.equals(deletedAt, that.deletedAt);
+                Objects.equals(deletedAt, that.deletedAt) &&
+                Objects.equals(startPrice, that.startPrice);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, customerId, driverId, restaurantId, customerLatValue, customerLonValue, driverLatValue, driverLonValue, restaurantLatValue, restaurantLonValue, status, orderDate, requiredTime, waitingTime, shippedTime, totalTime, totalLength, foodPrice, lengthPrice, percentPrice, totalPrice, quantity, discount, driverRating, restaurantRating, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, customerId, driverId, restaurantId, customerLatValue, customerLonValue, driverLatValue, driverLonValue, restaurantLatValue, restaurantLonValue, status, orderDate, requiredTime, waitingTime, shippedTime, totalTime, totalLength, foodPrice, lengthPrice, percentPrice, totalPrice, quantity, discount, driverRating, restaurantRating, createdAt, updatedAt, deletedAt, startPrice);
     }
 }

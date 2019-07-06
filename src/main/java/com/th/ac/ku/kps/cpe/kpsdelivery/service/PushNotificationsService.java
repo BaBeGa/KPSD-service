@@ -3,6 +3,7 @@ package com.th.ac.ku.kps.cpe.kpsdelivery.service;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
+import com.th.ac.ku.kps.cpe.kpsdelivery.unity.Common;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.scheduling.annotation.Async;
@@ -28,9 +29,9 @@ public class PushNotificationsService {
         interceptors.add(new HeaderRequestInterceptor("Authorization", "key=" + FIREBASE_SERVER_KEY));
         interceptors.add(new HeaderRequestInterceptor("Content-Type", "application/json"));
         restTemplate.setInterceptors(interceptors);
-
+        Common.LoggerInfo(entity);
         String firebaseResponse = restTemplate.postForObject(FIREBASE_API_URL, entity, String.class);
-
+        Common.LoggerInfo(firebaseResponse);
         return CompletableFuture.completedFuture(firebaseResponse);
     }
 }

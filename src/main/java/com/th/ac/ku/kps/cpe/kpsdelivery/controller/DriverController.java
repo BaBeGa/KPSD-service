@@ -6,24 +6,33 @@ import com.th.ac.ku.kps.cpe.kpsdelivery.model.user.update.userUpdateRequest;
 import com.th.ac.ku.kps.cpe.kpsdelivery.repository.*;
 import com.th.ac.ku.kps.cpe.kpsdelivery.service.PushNotificationsService;
 import com.th.ac.ku.kps.cpe.kpsdelivery.service.UserServiceImpl;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
 
-@RestController
+
 @CrossOrigin
+@RestController
 @RequestMapping(path = "/kpsdelivery")
 public class DriverController implements Serializable {
 
     private static PushNotificationsService pushNotificationsService;
+
     private final UserRepository userRepository;
+
     private final AccountRepository accountRepository;
+
     private final UserInfoRepository userInfoRepository;
+
     private final MenusRepository menusRepository;
+
     private final OrderRepository orderRepository;
+
     private final OrderDetailsRepository orderDetailsRepository;
+
     private final RestaurantRepository restaurantRepository;
 
     @Autowired
@@ -82,5 +91,11 @@ public class DriverController implements Serializable {
     public ResponseEntity<?> driverAcceptResponse(@RequestHeader String token, @RequestBody AcceptionRequest restRequest) {
         UserServiceImpl driverService = new UserServiceImpl(pushNotificationsService,userRepository, accountRepository, userInfoRepository, orderRepository, orderDetailsRepository, menusRepository, restaurantRepository);
         return driverService.acceptionDriver(token, restRequest);
+    }
+
+    @RequestMapping(method = RequestMethod.GET,value = "/driver/history/{driverId}")
+    public ResponseEntity<?> driverHistoryResponse(@RequestHeader String token, @PathVariable("driverId") int id) {
+        UserServiceImpl driverService = new UserServiceImpl(pushNotificationsService,userRepository, accountRepository, userInfoRepository, orderRepository, orderDetailsRepository, menusRepository, restaurantRepository);
+        return driverService.driverHistory(token, id);
     }
 }

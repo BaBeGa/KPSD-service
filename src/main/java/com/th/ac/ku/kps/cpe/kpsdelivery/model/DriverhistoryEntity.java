@@ -1,20 +1,15 @@
-package com.th.ac.ku.kps.cpe.kpsdelivery.model.buyer.order.get;
+package com.th.ac.ku.kps.cpe.kpsdelivery.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.th.ac.ku.kps.cpe.kpsdelivery.allenum.OrderStatus;
-import com.th.ac.ku.kps.cpe.kpsdelivery.model.DriverOrderEntity;
-import com.th.ac.ku.kps.cpe.kpsdelivery.model.MenusEntity;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
-public class orderGetResponse {
-    private Integer status;
-    private String msg;
+public class DriverhistoryEntity {
     private List<DriverOrderEntity> menus;
     private Integer customerId;
     private Integer driverId;
@@ -34,7 +29,6 @@ public class orderGetResponse {
     private Double totalLength;
     private double foodPrice;
     private Double lengthPrice;
-    private Double startPrice;
     private Double percentPrice;
     private Double totalPrice;
     private Integer quantity;
@@ -42,22 +36,6 @@ public class orderGetResponse {
     private Double orderRating;
     private Timestamp updatedAt;
 
-    @JsonGetter
-    public Integer getStatus() {
-        return status;
-    }
-    @JsonSetter
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-    @JsonGetter
-    public String getMsg() {
-        return msg;
-    }
-    @JsonSetter
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
     @JsonGetter
     public List<DriverOrderEntity> getMenus() {
         return menus;
@@ -202,15 +180,6 @@ public class orderGetResponse {
     public void setFoodPrice(double foodPrice) {
         this.foodPrice = foodPrice;
     }
-    @JsonGetter
-    public Double getStartPrice() {
-        return startPrice;
-    }
-    @JsonSetter
-    public void setStartPrice(Double startPrice) {
-        this.startPrice = startPrice;
-    }
-
     @JsonGetter
     public Double getLengthPrice() {
         return lengthPrice;

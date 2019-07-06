@@ -18,6 +18,7 @@ public class userUpdateRequest {
     private UserType type;
     private String image;
     private Byte isActiveAccount;
+    private Byte workStatus;
     private String fcmToken;
     private String address;
     private String address2;
@@ -28,6 +29,8 @@ public class userUpdateRequest {
     private String phonenumber;
     private Double latValue;
     private Double lonValue;
+    private String firstname;
+    private String lastname;
 //    private String rememberToken;
 //    private Timestamp createdAt;
 //    private Timestamp updatedAt;
@@ -49,6 +52,15 @@ public class userUpdateRequest {
     public void setIsActiveAccount(Byte isActiveAccount) {
         this.isActiveAccount = isActiveAccount;
     }
+    @JsonGetter
+    public Byte getWorkStatus() {
+        return workStatus;
+    }
+    @JsonSetter
+    public void setWorkStatus(Byte workStatus) {
+        this.workStatus = workStatus;
+    }
+
     @JsonGetter
     public String getFcmToken() {
         return fcmToken;
@@ -105,76 +117,92 @@ public class userUpdateRequest {
     public void setImage(String image) {
         this.image = image;
     }
-
+    @JsonGetter
     public String getAddress() {
         return address;
     }
-
+    @JsonSetter
     public void setAddress(String address) {
         this.address = address;
     }
-
+    @JsonGetter
     public String getAddress2() {
         return address2;
     }
-
+    @JsonSetter
     public void setAddress2(String address2) {
         this.address2 = address2;
     }
-
+    @JsonGetter
     public String getSubdistrict() {
         return subdistrict;
     }
-
+    @JsonSetter
     public void setSubdistrict(String subdistrict) {
         this.subdistrict = subdistrict;
     }
-
+    @JsonGetter
     public String getDistrict() {
         return district;
     }
-
+    @JsonSetter
     public void setDistrict(String district) {
         this.district = district;
     }
-
+    @JsonGetter
     public String getProvince() {
         return province;
     }
-
+    @JsonSetter
     public void setProvince(String province) {
         this.province = province;
     }
-
+    @JsonGetter
     public String getZipcode() {
         return zipcode;
     }
-
+    @JsonSetter
     public void setZipcode(String zipcode) {
         this.zipcode = zipcode;
     }
-
+    @JsonGetter
     public String getPhonenumber() {
         return phonenumber;
     }
-
+    @JsonSetter
     public void setPhonenumber(String phonenumber) {
         this.phonenumber = phonenumber;
     }
-
+    @JsonGetter
     public Double getLatValue() {
         return latValue;
     }
-
+    @JsonSetter
     public void setLatValue(Double latValue) {
         this.latValue = latValue;
     }
-
+    @JsonGetter
     public Double getLonValue() {
         return lonValue;
     }
-
+    @JsonSetter
     public void setLonValue(Double lonValue) {
         this.lonValue = lonValue;
+    }
+    @JsonGetter
+    public String getFirstname() {
+        return firstname;
+    }
+    @JsonSetter
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+    @JsonGetter
+    public String getLastname() {
+        return lastname;
+    }
+    @JsonSetter
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 }

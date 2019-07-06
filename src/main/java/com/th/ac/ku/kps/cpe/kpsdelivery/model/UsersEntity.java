@@ -17,6 +17,7 @@ public class UsersEntity {
     private UserType type;
     private String image;
     private Byte isActiveAccount;
+    private Byte workStatus;
     private String fcmToken;
     private Double numRating;
     private Double avgRating;
@@ -107,6 +108,16 @@ public class UsersEntity {
     }
 
     @Basic
+    @Column(name = "work_status")
+    public Byte getWorkStatus() {
+        return workStatus;
+    }
+
+    public void setWorkStatus(Byte workStatus) {
+        this.workStatus = workStatus;
+    }
+
+    @Basic
     @Column(name = "fcm_token")
     public String getFcmToken() {
         return fcmToken;
@@ -189,6 +200,7 @@ public class UsersEntity {
                 Objects.equals(type, that.type) &&
                 Objects.equals(image, that.image) &&
                 Objects.equals(isActiveAccount, that.isActiveAccount) &&
+                Objects.equals(workStatus, that.workStatus) &&
                 Objects.equals(fcmToken, that.fcmToken) &&
                 Objects.equals(numRating, that.numRating) &&
                 Objects.equals(avgRating, that.avgRating) &&
@@ -200,6 +212,6 @@ public class UsersEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, email, emailVerifiedAt, password, type, image, isActiveAccount, fcmToken, numRating, avgRating, rememberToken, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, name, email, emailVerifiedAt, password, type, image, isActiveAccount, workStatus, fcmToken, numRating, avgRating, rememberToken, createdAt, updatedAt, deletedAt);
     }
 }
